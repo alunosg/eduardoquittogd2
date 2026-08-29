@@ -146,3 +146,7 @@ x86/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.vsconfig
+EQuittoGD2/Library
+EQuittoGD2/UserSettings
+EQuittoGD2/Logs
+EQuittoGD2/Temp
