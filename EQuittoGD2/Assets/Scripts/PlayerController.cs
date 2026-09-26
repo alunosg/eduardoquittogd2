@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     public Rigidbody rig;
+    public Transform  turret;
     public Transform cannon;
     public Transform bulletPoint;
     public GameObject bulletPrefab;
@@ -40,11 +41,12 @@ public class PlayerController : MonoBehaviour
         Vector2 lookInput = context.ReadValue<Vector2>();
 
         cannonRotation.y += lookInput.x * rotationSpeed.y * Time.deltaTime;
-        cannonRotation.x += lookInput.y * rotationSpeed.x * Time.deltaTime;
+        cannonRotation.x -= lookInput.y * rotationSpeed.x * Time.deltaTime;
 
         cannonRotation.x = Mathf.Clamp(cannonRotation.x, minRotationX, maxRotationX);
 
-        cannon.localRotation = Quaternion.Euler(cannonRotation.x, cannonRotation.y, 0f);
+        cannon.localRotation = Quaternion.Euler(cannonRotation.x, 0f, 0f);
+        turret.localRotation = Quaternion.Euler(0f, cannonRotation.y, 0f);
 
     }
     public void Onshoot(InputAction.CallbackContext context)
