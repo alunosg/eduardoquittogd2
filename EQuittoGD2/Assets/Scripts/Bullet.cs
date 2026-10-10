@@ -15,12 +15,12 @@ public class Bullet : MonoBehaviour
     {
         if (hitPlayer && other.CompareTag("Player"))
         {
-            //other.GetComponent<PlayerController>().GetHit(damage);
+            other.GetComponent<PlayerController>().GetHit(damage);
 
         }
         if (hitEnemy && other.CompareTag("Enemy"))
         {
-            //other.GetComponent<EnemyController>().GetHit(damage);
+            other.GetComponent<EnemyController>().GetHit(damage);
         }
 
         if (hitFX) Instantiate(hitFX, transform.position, transform.rotation);
