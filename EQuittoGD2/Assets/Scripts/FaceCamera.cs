@@ -12,10 +12,20 @@ public class FaceCamera : MonoBehaviour
         startScale = transform.localScale;
     }
 
-    void Update()
+    void LateUpdate()
     {
+        if (MainCamera == null)
+        {
+            MainCamera = Camera.main;
+        }
+
+        if (MainCamera == null)
+        {
+            return;
+        }
+
         transform.rotation = MainCamera.transform.rotation;
         transform.localScale = startScale * (baseScale *
-            Vector3.Distance(transform.position, transform.position));
+            Vector3.Distance(transform.position, MainCamera.transform.position));
     }
 }

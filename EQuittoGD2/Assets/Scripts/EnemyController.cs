@@ -41,6 +41,11 @@ public class EnemyController : MonoBehaviour
     private Quaternion targetTurretRotation;
     private Quaternion targetCannonRotation;
 
+    public AudioSource audioSource;
+    public AudioClip shootSFX;
+    public AudioClip hitSFX;
+    public AudioClip deathSFX;
+
     public float ragdollForce = 5;
     public EnemySpawner spawner;
 
@@ -157,6 +162,7 @@ public class EnemyController : MonoBehaviour
 
     void Shoot()
     {
+        if (shootSFX) audioSource.PlayOneShot(shootSFX);
         if (shootFX) Instantiate(shootFX, bulletPoint.position, bulletPoint.rotation);
 
         GameObject bullet = Instantiate(bulletPrefab, bulletPoint.position, bulletPoint.rotation);
@@ -174,10 +180,13 @@ public class EnemyController : MonoBehaviour
             locked = true;
             nav.isStopped = true;
 
+            if (hitSFX) audioSource.PlayOneShot(hitSFX);
             if (hitFX) Instantiate(hitFX, transform.position, transform.rotation);
 
             hp -= damage;
-            hpBar.transform.localScale = new Vector3(hp / maxHp, 1, 1);
+            float hpRatio = Mathf.Clamp01(hp / maxHp);
+            hpBar.transform.localScale = new Vector3(hpRatio, 1, 1);
+            hpBar.transform.localPosition = new Vector3(-(1f - hpRatio) * 0.5f, 0, 0);
             if (hp > 0)
             {
                 //Leva hit
@@ -186,6 +195,8 @@ public class EnemyController : MonoBehaviour
             else
             {
                 //Morre
+                if (deathSFX) audioSource.PlayOneShot(deathSFX);
+
                 Destroy(nav);
 
                 hpBar.transform.parent.gameObject.SetActive(false);
@@ -194,7 +205,7 @@ public class EnemyController : MonoBehaviour
 
                 ragdoll.mass = 3;
 
-                ragdoll.linearVelocity = ragdollForce * (Vector3.up +
+                ragdoll.linearVelocity = ragdollForce * (Vector3.up + 
                     (transform.position - player.transform.position).normalized);
 
                 ragdoll.angularVelocity = new Vector3
@@ -230,25 +241,25 @@ public class EnemyController : MonoBehaviour
         targetTurretRotation = Quaternion.Inverse(turret.parent.rotation)
             * Quaternion.LookRotation(targetPosition - turret.position);
 
-        // 1. Pegamos a posiÁ„o do pivot do canh„o e do jogador
+        // 1. Pegamos a posi√ß√£o do pivot do canh√£o e do jogador
         Vector3 fromPos = cannon.position;
         Vector3 toPos = shootTarget.position;
 
-        // 2. Calculamos a dist‚ncia horizontal (XZ) e a altura vertical (Y) pura entre os pivots
+        // 2. Calculamos a dist√¢ncia horizontal (XZ) e a altura vertical (Y) pura entre os pivots
         Vector3 diffXZ = new Vector3(toPos.x - fromPos.x, 0, toPos.z - fromPos.z);
         float xPivot = diffXZ.magnitude;
         float yPivot = toPos.y - fromPos.y;
 
-        // 3. Descobrimos o comprimento fÌsico do cano (dist‚ncia Z local do pivot atÈ a ponta)
+        // 3. Descobrimos o comprimento f√≠sico do cano (dist√¢ncia Z local do pivot at√© a ponta)
         float barrelLength = cannon.InverseTransformPoint(bulletPoint.position).z;
 
-        // 4. CORRE«√O MATEM¡TICA DEFINITIVA:
-        // A gravidade sÛ age na bala DEPOIS que ela sai da ponta do cano.
-        // Portanto, a dist‚ncia real que a par·bola precisa percorrer È a dist‚ncia total menos o cano.
+        // 4. CORRE√á√ÉO MATEM√ÅTICA DEFINITIVA:
+        // A gravidade s√≥ age na bala DEPOIS que ela sai da ponta do cano.
+        // Portanto, a dist√¢ncia real que a par√°bola precisa percorrer √© a dist√¢ncia total menos o cano.
         float x = xPivot - barrelLength;
         float y = yPivot;
 
-        // ProteÁ„o para o caso do jogador estar literalmente colado ou "dentro" do canh„o
+        // Prote√ß√£o para o caso do jogador estar literalmente colado ou "dentro" do canh√£o
         if (x < 2f)
         {
             targetCannonRotation = Quaternion.Euler(-10f, 0, 0);
@@ -258,23 +269,23 @@ public class EnemyController : MonoBehaviour
             float v = bulletSpeed;
             float g = Physics.gravity.magnitude;
 
-            // 5. FÛrmula da TrajetÛria BalÌstica Pura e Est·vel
+            // 5. F√≥rmula da Trajet√≥ria Bal√≠stica Pura e Est√°vel
             float discriminant = (v * v * v * v) - g * (g * (x * x) + 2 * y * (v * v));
 
             if (discriminant >= 0)
             {
                 float sqrtRoot = Mathf.Sqrt(discriminant);
 
-                // ¬ngulo balÌstico exato em radianos
+                // √Çngulo bal√≠stico exato em radianos
                 float angleRad = Mathf.Atan2((v * v) - sqrtRoot, g * x);
                 float angleDeg = angleRad * Mathf.Rad2Deg;
 
-                // Aplica a rotaÁ„o de forma limpa no eixo X local do canh„o
+                // Aplica a rota√ß√£o de forma limpa no eixo X local do canh√£o
                 targetCannonRotation = Quaternion.Euler(-angleDeg, 0, 0);
             }
             else
             {
-                // Fora de alcance: Inclina a 45 graus para m·xima dist‚ncia
+                // Fora de alcance: Inclina a 45 graus para m√°xima dist√¢ncia
                 targetCannonRotation = Quaternion.Euler(-45f, 0, 0);
             }
         }
